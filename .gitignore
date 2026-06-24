@@ -1,0 +1,38 @@
+# Compiled kernel module
+*.o
+*.ko
+*.mod.c
+*.mod.o
+*.order
+*.symvers
+*.cmd
+.tmp_versions/
+
+# Userspace binaries
+userspace/test_queue
+
+# IDE / Editor
+.vscode/
+*.swp
+*.swo
+*~
+
+# Archive files
+*.tar.gz
+*.tar.bz2
+*.zip
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# TFTP artifacts (don't commit deploy copies)
+scripts/*.out
+
+# Temp files and documents
+~$*
+*.docx
+*.pdf
+
+# Claude local settings
+.claude/settings.local.json
