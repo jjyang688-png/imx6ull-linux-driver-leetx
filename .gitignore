@@ -31,7 +31,6 @@ scripts/*.out
 
 # Temp files and documents
 ~$*
-*.docx
 *.pdf
 
 # Claude local settings
