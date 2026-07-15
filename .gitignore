@@ -10,6 +10,8 @@
 
 # Userspace binaries
 userspace/test_queue
+userspace/test_spi_adc
+userspace/can/can_demo
 
 # IDE / Editor
 .vscode/

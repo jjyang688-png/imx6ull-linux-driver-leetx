@@ -8,8 +8,44 @@
 
 ---
 
+## 进度概览
+
+> **更新时间**：2026-07-15  
+> **当前阶段**：Stage 9（IIO 子系统，准备中）
+
+```
+Stage 1  ████████████████████  ✅ 字符驱动深度重构          kernel/stage01-char/
+Stage 2  ████████████████████  ✅ 平台设备驱动模型           kernel/stage02-platform/
+Stage 3  ████████████████████  ✅ 中断子系统                 kernel/stage03-interrupt/
+Stage 4  ████████████████████  ✅ 内存与 DMA                kernel/stage04-dma/
+Stage 5  ████████████████████  ✅ SPI 总线驱动框架           kernel/stage05-spi/
+Stage 6  ████████████████████  ✅ I2C 总线驱动框架           kernel/stage06-i2c/
+Stage 7  ████████████████████  ✅ PWM 输出驱动               kernel/stage07-pwm/
+Stage 8  ████████░░░░░░░░░░░░  ⚠️ SocketCAN 工业总线         kernel/stage08-can/
+Stage 9  ░░░░░░░░░░░░░░░░░░░░  ⬜ IIO 工业 I/O 子系统        kernel/stage07-iio/
+Stage 10 ░░░░░░░░░░░░░░░░░░░░  ⬜ PREEMPT_RT 实时内核       —
+Stage 11 ░░░░░░░░░░░░░░░░░░░░  ⬜ 以太网驱动结构            —
+Stage 12 ░░░░░░░░░░░░░░░░░░░░  ⬜ 综合实战项目              —
+```
+
+| 阶段 | 目录 | 状态 | 说明 |
+|------|------|------|------|
+| 1 字符驱动 | `kernel/stage01-char/` | ✅ | cdev + kfifo + waitqueue + mutex |
+| 2 平台设备 | `kernel/stage02-platform/` | ✅ | platform_driver + 设备树 + devm |
+| 3 中断子系统 | `kernel/stage03-interrupt/` | ✅ | threaded IRQ (hard + thread) + hrtimer |
+| 4 DMA | `kernel/stage04-dma/` | ✅ | dma_alloc_coherent + mmap + poll |
+| 5 SPI 总线 | `kernel/stage05-spi/` | ✅ | spi_driver + 模拟/真实双模式 |
+| 6 I2C 总线 | `kernel/stage06-i2c/` | ✅ | i2c_driver + EEPROM 读写 |
+| 7 PWM 输出 | `kernel/stage07-pwm/` | ✅ | pwm_get/pwm_config/pwm_enable |
+| 8 SocketCAN | `kernel/stage08-can/` | ⚠️ | 用户态 demo 已有，内核驱动待写 |
+| 9 IIO 子系统 | `kernel/stage07-iio/` | ⬜ | **最关键的面试阶段** |
+| 10 PREEMPT_RT | — | ⬜ | RT 内核编译 + cyclictest |
+| 11 以太网 | — | ⬜ | fec 驱动源码分析 |
+| 12 综合项目 | — | ⬜ | 数据采集 + 实时控制闭环 |
+
 ## 目录
 
+- [进度概览](#进度概览)
 - [前置要求](#前置要求)
 - [第一阶段：字符驱动深度重构](#第一阶段字符驱动深度重构)
 - [第二阶段：平台设备驱动模型](#第二阶段平台设备驱动模型)
@@ -567,6 +603,12 @@ i2c_transfer(client->adapter, msgs, 2);   /* 支持 REPEATED START */
 - 在 i.MX6ULL 上接一个真实的 SPI ADC（如 MCP3008 / ADS8688）并跑通驱动
 - 用示波器抓取 CS、CLK、MOSI、MISO 四路波形，验证 SPI 时序
 
+### ✅ 实际进度
+
+- **SPI 驱动**（`kernel/stage05-spi/leetx_spi_adc.c`）：spi_driver 框架，支持 `use_sim` 模拟/真实双模式，集成 DMA + mmap + threaded IRQ + hrtimer
+- **I2C 驱动**（`kernel/stage06-i2c/leetx_i2c_eeprom.c`）：i2c_driver 框架，AT24C02 EEPROM 读写，同样集成完整的 DMA + mmap + 中断链路
+- **PWM 驱动**（`kernel/stage07-pwm/leetx_pwm.c`）：platform_driver + PWM 子系统，用户态写 0-100 控制占空比，`pwm_get/pwm_config/pwm_enable` 标准 API
+
 ---
 
 ## 第六阶段：工业总线 — SocketCAN
@@ -1028,19 +1070,21 @@ struct net_device            /* 内核代表一块网卡 */
 
 ## 时间分配总表
 
-| 阶段 | 内容 | 周期 | 可并行？ | 核心产出 |
-|------|------|------|----------|----------|
-| 1 | 字符驱动深度（并发/定时器/sysfs） | 2 周 | 独立 | 工业级字符驱动 |
-| 2 | 平台设备模型 + 设备树 | 2 周 | 独立 | platform_driver 骨架 |
-| 3 | 中断子系统 | 2 周 | 可与 2 重叠 | threaded IRQ 驱动 |
-| 4 | 内存 & DMA | 2 周 | 独立 | mmap + DMA 零拷贝 |
-| 5 | SPI/I2C 总线驱动框架 | 2 周 | 独立 | SPI/I2C 传感器驱动 |
-| 6 | SocketCAN 工业总线 | 1.5 周 | 独立 | CAN 通信程序 + 驱动分析 |
-| 7 | IIO 子系统 | 1.5 周 | 依赖 5 | IIO 传感器驱动 |
-| 8 | PREEMPT_RT 实时内核 | 1.5 周 | 独立 | RT 内核 + cyclictest |
-| 9 | 以太网驱动结构 | 1 周 | 独立 | fec 驱动调用链分析 |
-| 10 | 综合项目 | 3 周 | 全部依赖 | 完整闭环系统 |
-| **合计** | | **≈ 18.5 周** | | |
+| 阶段 | 内容 | 计划周期 | 实际状态 | 核心产出 |
+|------|------|----------|----------|----------|
+| 1 | 字符驱动深度（并发/定时器/sysfs） | 2 周 | ✅ 完成 | 工业级字符驱动 |
+| 2 | 平台设备模型 + 设备树 | 2 周 | ✅ 完成 | platform_driver 骨架 |
+| 3 | 中断子系统 | 2 周 | ✅ 完成 | threaded IRQ 驱动 |
+| 4 | 内存 & DMA | 2 周 | ✅ 完成 | mmap + DMA 零拷贝 |
+| 5 | SPI 总线驱动框架 | 2 周 | ✅ 完成 | SPI ADC 传感器驱动 |
+| 6 | I2C 总线驱动框架 | — | ✅ 完成 | I2C EEPROM 驱动 |
+| 7 | PWM 输出驱动 | — | ✅ 完成 | PWM 0-100% 占空比控制 |
+| 8 | SocketCAN 工业总线 | 1.5 周 | ⚠️ 部分 | 用户态 demo 已有 |
+| 9 | IIO 子系统 | 1.5 周 | ⬜ 待开始 | **最重要的面试阶段** |
+| 10 | PREEMPT_RT 实时内核 | 1.5 周 | ⬜ 待开始 | RT 内核 + cyclictest |
+| 11 | 以太网驱动结构 | 1 周 | ⬜ 待开始 | fec 驱动调用链分析 |
+| 12 | 综合项目 | 3 周 | ⬜ 待开始 | 完整闭环系统 |
+| **合计** | | **≈ 18.5 周** | **7/12 完成** | |
 
 ---
 
@@ -1066,6 +1110,22 @@ struct net_device            /* 内核代表一块网卡 */
 ---
 
 ## Git 版本管理建议
+
+### 实际 commit 历史
+
+```bash
+768390a [stage05-06] 重命名目录 + 新增 I2C 总线驱动 + PWM 预备
+6efbccb [stage04-06] DMA mmap零拷贝驱动 + SPI总线驱动 + SocketCAN框架
+cca6132 Add comprehensive README with tech stack documentation
+f7543a3 Restore 笔记.docx
+37fe2f4 Stage 2+3: platform_driver + interrupt (threaded IRQ + hrtimer)
+e189871 Add study notes docx and update gitignore
+ccdddf1 Initial commit: Leetx preparation project - Stage 1 Task 1
+```
+
+> **注意**：实际开发中未严格按每个阶段一个分支，所有工作都在 `master` 分支上。每个 commit 可能包含多个阶段的代码。
+
+### 推荐规范（供参考）
 
 ```bash
 # 每个阶段一个分支
@@ -1094,7 +1154,7 @@ git merge stage10-final-project
 
 3. **面试时你只有一个武器**：你亲手跑通的真实项目。你能讲出中断延迟数据、DMA 吞吐对比、RT 内核 jitter 直方图——这比你说"我了解 Linux 驱动"有力一百倍。
 
-4. **第一阶段到第六阶段是基础**，必须扎实；第七阶段（IIO）是与 Leetx 最直接的对口技术，重点投入。
+4. **第一阶段到第七阶段是基础**，已全部完成；第七阶段（IIO）是与 Leetx 最直接的对口技术，重点投入。
 
 5. **综合项目是核心**。做完之后把这个项目写在简历最显眼的位置，它直接对标 Leetx 的技术栈。
 
